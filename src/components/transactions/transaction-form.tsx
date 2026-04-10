@@ -49,6 +49,9 @@ const TRANSACTION_TYPES: TransactionType[] = [
   "Income",
   "Transfer",
   "Investment Contribution",
+  "Investment Withdrawal",
+  "Interest Earned",
+  "Dividend",
   "Loan Repayment",
   "Reversal",
   "Interest Charge",
@@ -61,6 +64,9 @@ const transactionFormSchema = z
       "Income",
       "Transfer",
       "Investment Contribution",
+      "Investment Withdrawal",
+      "Interest Earned",
+      "Dividend",
       "Loan Repayment",
       "Reversal",
       "Interest Charge",
@@ -95,7 +101,7 @@ const transactionFormSchema = z
       }
     }
 
-    if (type === "Transfer" || type === "Investment Contribution" || type === "Loan Repayment") {
+    if (type === "Transfer" || type === "Investment Contribution" || type === "Investment Withdrawal" || type === "Loan Repayment") {
       if (!data.accountId) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -110,11 +116,26 @@ const transactionFormSchema = z
           path: ["toAccountId"],
         });
       }
-      if (type === "Transfer" && data.accountId && data.toAccountId && data.accountId === data.toAccountId) {
+      if (
+        (type === "Transfer" || type === "Investment Contribution" || type === "Investment Withdrawal") &&
+        data.accountId &&
+        data.toAccountId &&
+        data.accountId === data.toAccountId
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "From and To accounts must be different",
           path: ["toAccountId"],
+        });
+      }
+    }
+
+    if (type === "Interest Earned" || type === "Dividend") {
+      if (!data.accountId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Account is required",
+          path: ["accountId"],
         });
       }
     }
@@ -184,6 +205,12 @@ export function TransactionForm() {
         return activeAccounts;
       case "Investment Contribution":
         return assetAccounts;
+      case "Investment Withdrawal":
+        return investmentAccounts;
+      case "Interest Earned":
+        return activeAccounts.filter((a) => a.type === "Asset" || a.type === "Investment");
+      case "Dividend":
+        return activeAccounts.filter((a) => a.type === "Asset" || a.type === "Investment");
       case "Loan Repayment":
         return activeAccounts.filter(
           (a) => a.type === "Asset" || a.type === "Investment"
@@ -203,6 +230,8 @@ export function TransactionForm() {
         return activeAccounts;
       case "Investment Contribution":
         return investmentAccounts;
+      case "Investment Withdrawal":
+        return assetAccounts;
       case "Loan Repayment":
         return liabilityAccounts;
       default:
@@ -226,10 +255,16 @@ export function TransactionForm() {
       case "Transfer":
       case "Investment Contribution":
         return "From Account";
+      case "Investment Withdrawal":
+        return "Investment Account";
       case "Loan Repayment":
         return "Payment Account";
       case "Interest Charge":
         return "Loan Account";
+      case "Interest Earned":
+        return "Account (receiving interest)";
+      case "Dividend":
+        return "Account (receiving dividend)";
       default:
         return "Account";
     }
@@ -241,6 +276,8 @@ export function TransactionForm() {
         return "To Account";
       case "Investment Contribution":
         return "Investment Account";
+      case "Investment Withdrawal":
+        return "Destination Account";
       case "Loan Repayment":
         return "Loan Account";
       default:
@@ -253,6 +290,9 @@ export function TransactionForm() {
     selectedType === "Income" ||
     selectedType === "Transfer" ||
     selectedType === "Investment Contribution" ||
+    selectedType === "Investment Withdrawal" ||
+    selectedType === "Interest Earned" ||
+    selectedType === "Dividend" ||
     selectedType === "Loan Repayment" ||
     selectedType === "Reversal" ||
     selectedType === "Interest Charge";
@@ -260,6 +300,7 @@ export function TransactionForm() {
   const showToAccount =
     selectedType === "Transfer" ||
     selectedType === "Investment Contribution" ||
+    selectedType === "Investment Withdrawal" ||
     selectedType === "Loan Repayment";
 
   const showCategory = selectedType === "Expense" || selectedType === "Income";

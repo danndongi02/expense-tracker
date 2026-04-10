@@ -24,29 +24,53 @@ export function useAnalytics(transactions: Transaction[]) {
     });
   }, [transactions, startDate, endDate]);
 
+  const validFilteredTransactions = useMemo(() => {
+    const reversedIds = new Set<string>();
+    for (const tx of filteredTransactions) {
+      if (tx.type === "Reversal" && tx.originalTransactionId) {
+        reversedIds.add(tx.originalTransactionId);
+      }
+    }
+    return filteredTransactions.filter(
+      (tx) => tx.type !== "Reversal" && !reversedIds.has(tx.transactionId)
+    );
+  }, [filteredTransactions]);
+
+  const validTransactions = useMemo(() => {
+    const reversedIds = new Set<string>();
+    for (const tx of transactions) {
+      if (tx.type === "Reversal" && tx.originalTransactionId) {
+        reversedIds.add(tx.originalTransactionId);
+      }
+    }
+    return transactions.filter(
+      (tx) => tx.type !== "Reversal" && !reversedIds.has(tx.transactionId)
+    );
+  }, [transactions]);
+
   const spendingByCategory = useMemo(
-    () => computeSpendingByCategory(filteredTransactions),
-    [filteredTransactions]
+    () => computeSpendingByCategory(validFilteredTransactions),
+    [validFilteredTransactions]
   );
 
   const incomeByCategory = useMemo(
-    () => computeIncomeByCategory(filteredTransactions),
-    [filteredTransactions]
+    () => computeIncomeByCategory(validFilteredTransactions),
+    [validFilteredTransactions]
   );
 
   const incomeVsExpenses = useMemo(
-    () => computeIncomeVsExpenses(filteredTransactions),
-    [filteredTransactions]
+    () => computeIncomeVsExpenses(validFilteredTransactions),
+    [validFilteredTransactions]
   );
 
   const monthlyTrend = useMemo(
-    () => computeMonthlyTrend(transactions),
-    [transactions]
+    () => computeMonthlyTrend(validTransactions),
+    [validTransactions]
   );
 
   const trendData = useMemo(
-    () => computeTrend(transactions, trendGranularity),
-    [transactions, trendGranularity]
+    () => computeTrend(validTransactions, trendGranularity),
+    [validTransactions, trendGranularity]
   );
 
   return {

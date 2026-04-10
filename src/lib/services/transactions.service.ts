@@ -20,7 +20,6 @@ import { doc, runTransaction } from "firebase/firestore";
 import { Transaction, LedgerEntry, TransactionType, Loan } from "@/lib/types";
 import { createLedgerEntries, generateEntryId } from "@/lib/utils/ledger";
 import { formatTransactionId } from "@/lib/utils/transaction-id";
-import { recordLoanRepayment, recordInterestCharge } from "@/lib/services/loans.service";
 
 function mapDoc(d: any): Transaction {
   return { id: d.id, ...d.data() } as Transaction;
@@ -132,20 +131,31 @@ export async function createTransaction(
     });
   }
 
-  await batch.commit();
-
-  // Update the linked loan balance for relevant transaction types
+  // Fix #1: Loan balance update is now inside the same writeBatch for atomicity.
   if (input.type === "Loan Repayment" && input.toAccountId) {
     const loan = await findLoanByLinkedAccount(userId, input.toAccountId);
     if (loan) {
-      await recordLoanRepayment(userId, loan.id, input.amount);
+      const loanRef = getUserDoc(userId, "loans", loan.id);
+      const newBalance = loan.currentBalance - input.amount;
+      batch.update(loanRef, {
+        currentBalance: newBalance,
+        status: newBalance <= 0 ? "Paid Off" : "Active",
+        updatedAt: now,
+      });
     }
   } else if (input.type === "Interest Charge" && input.accountId) {
     const loan = await findLoanByLinkedAccount(userId, input.accountId);
     if (loan) {
-      await recordInterestCharge(userId, loan.id, input.amount);
+      const loanRef = getUserDoc(userId, "loans", loan.id);
+      batch.update(loanRef, {
+        currentBalance: loan.currentBalance + input.amount,
+        totalInterestPaid: loan.totalInterestPaid + input.amount,
+        updatedAt: now,
+      });
     }
   }
+
+  await batch.commit();
 
   return txId;
 }
@@ -296,6 +306,32 @@ export async function reverseTransaction(
     batch.set(entryRef, { ...entry, id: generateEntryId() });
   }
 
+  // Fix #2: Apply inverse loan adjustment inside the same batch.
+  if (original.type === "Loan Repayment" && original.toAccountId) {
+    // Reversing a repayment: add the amount back to the loan balance.
+    const loan = await findLoanByLinkedAccount(userId, original.toAccountId);
+    if (loan) {
+      const loanRef = getUserDoc(userId, "loans", loan.id);
+      const restoredBalance = loan.currentBalance + original.amount;
+      batch.update(loanRef, {
+        currentBalance: restoredBalance,
+        status: "Active",
+        updatedAt: now,
+      });
+    }
+  } else if (original.type === "Interest Charge" && original.accountId) {
+    // Reversing an interest charge: subtract the amount from balance and totalInterestPaid.
+    const loan = await findLoanByLinkedAccount(userId, original.accountId);
+    if (loan) {
+      const loanRef = getUserDoc(userId, "loans", loan.id);
+      batch.update(loanRef, {
+        currentBalance: loan.currentBalance - original.amount,
+        totalInterestPaid: Math.max(0, loan.totalInterestPaid - original.amount),
+        updatedAt: now,
+      });
+    }
+  }
+
   await batch.commit();
   return txId;
 }
@@ -316,9 +352,12 @@ function computeReversalEntries(
     case "Expense":
       return [{ ...base, accountId: original.accountId, accountName: original.accountName, delta: original.amount }];
     case "Income":
+    case "Interest Earned":
+    case "Dividend":
       return [{ ...base, accountId: original.accountId, accountName: original.accountName, delta: -original.amount }];
     case "Transfer":
     case "Investment Contribution":
+    case "Investment Withdrawal":
       return [
         { ...base, accountId: original.accountId, accountName: original.accountName, delta: original.amount },
         { ...base, accountId: original.toAccountId!, accountName: original.toAccountName!, delta: -original.amount },

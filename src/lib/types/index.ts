@@ -8,6 +8,9 @@ export type TransactionType =
   | "Income"
   | "Transfer"
   | "Investment Contribution"
+  | "Investment Withdrawal"
+  | "Interest Earned"
+  | "Dividend"
   | "Loan Repayment"
   | "Reversal"
   | "Interest Charge";

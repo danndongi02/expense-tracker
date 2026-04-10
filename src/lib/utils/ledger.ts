@@ -49,6 +49,25 @@ export function createLedgerEntries(input: LedgerInput): Omit<LedgerEntry, "id">
         { ...baseEntry, accountId: toAccountId, accountName: toAccountName, delta: amount },
       ];
 
+    case "Investment Withdrawal":
+      if (!toAccountId || !toAccountName) throw new Error("Investment Withdrawal requires toAccount");
+      return [
+        { ...baseEntry, accountId, accountName, delta: -amount },
+        { ...baseEntry, accountId: toAccountId, accountName: toAccountName, delta: amount },
+      ];
+
+    case "Interest Earned":
+      // Single-leg: the savings/investment account receives the interest
+      return [
+        { ...baseEntry, accountId, accountName, delta: amount },
+      ];
+
+    case "Dividend":
+      // Single-leg: the destination account receives the dividend
+      return [
+        { ...baseEntry, accountId, accountName, delta: amount },
+      ];
+
     case "Loan Repayment":
       if (!toAccountId || !toAccountName) throw new Error("Loan Repayment requires loan account");
       return [

@@ -17,6 +17,8 @@ const PERIOD_OPTIONS: { value: PeriodPreset; label: string }[] = [
   { value: "last-month", label: "Last Month" },
   { value: "last-3-months", label: "Last 3 Months" },
   { value: "last-6-months", label: "Last 6 Months" },
+  { value: "this-year", label: "This Year" },
+  { value: "last-year", label: "Last Year" },
 ];
 
 export function PeriodSelector() {

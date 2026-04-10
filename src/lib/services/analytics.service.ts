@@ -33,9 +33,16 @@ export function computeIncomeByCategory(transactions: Transaction[]): CategoryBr
   const map = new Map<string, number>();
 
   for (const tx of transactions) {
-    if (tx.type !== "Income") continue;
-    const cat = tx.categoryName || "Uncategorized";
-    map.set(cat, (map.get(cat) || 0) + tx.amount);
+    if (tx.type === "Income") {
+      const cat = tx.categoryName || "Uncategorized";
+      map.set(cat, (map.get(cat) || 0) + tx.amount);
+    } else if (tx.type === "Interest Earned") {
+      const cat = tx.categoryName || "Interest Earned";
+      map.set(cat, (map.get(cat) || 0) + tx.amount);
+    } else if (tx.type === "Dividend") {
+      const cat = tx.categoryName || "Dividend";
+      map.set(cat, (map.get(cat) || 0) + tx.amount);
+    }
   }
 
   return Array.from(map.entries())
@@ -52,8 +59,11 @@ export function computeIncomeVsExpenses(transactions: Transaction[]): {
   let totalExpenses = 0;
 
   for (const tx of transactions) {
-    if (tx.type === "Income") totalIncome += tx.amount;
-    else if (tx.type === "Expense") totalExpenses += tx.amount;
+    if (tx.type === "Income" || tx.type === "Interest Earned" || tx.type === "Dividend") {
+      totalIncome += tx.amount;
+    } else if (tx.type === "Expense") {
+      totalExpenses += tx.amount;
+    }
   }
 
   return {

@@ -91,6 +91,28 @@ export const investmentContributionSchema = baseTransactionSchema.extend({
   type: z.literal("Investment Contribution"),
   accountId: z.string().min(1, "From account is required"),
   toAccountId: z.string().min(1, "Investment account is required"),
+}).refine((data) => data.accountId !== data.toAccountId, {
+  message: "From and To accounts must be different",
+  path: ["toAccountId"],
+});
+
+export const investmentWithdrawalSchema = baseTransactionSchema.extend({
+  type: z.literal("Investment Withdrawal"),
+  accountId: z.string().min(1, "Investment account is required"),
+  toAccountId: z.string().min(1, "Destination account is required"),
+}).refine((data) => data.accountId !== data.toAccountId, {
+  message: "Investment and destination accounts must be different",
+  path: ["toAccountId"],
+});
+
+export const interestEarnedSchema = baseTransactionSchema.extend({
+  type: z.literal("Interest Earned"),
+  accountId: z.string().min(1, "Account is required"),
+});
+
+export const dividendSchema = baseTransactionSchema.extend({
+  type: z.literal("Dividend"),
+  accountId: z.string().min(1, "Account is required"),
 });
 
 export const loanRepaymentSchema = baseTransactionSchema.extend({
@@ -115,6 +137,9 @@ export const transactionSchema = z.discriminatedUnion("type", [
   incomeSchema,
   transferSchema,
   investmentContributionSchema,
+  investmentWithdrawalSchema,
+  interestEarnedSchema,
+  dividendSchema,
   loanRepaymentSchema,
   reversalSchema,
   interestChargeSchema,

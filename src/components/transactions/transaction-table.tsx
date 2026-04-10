@@ -37,10 +37,12 @@ function getTypeBadgeVariant(
     case "Expense":
       return "destructive";
     case "Income":
+    case "Interest Earned":
+    case "Dividend":
       return "default";
     case "Transfer":
-      return "secondary";
     case "Investment Contribution":
+    case "Investment Withdrawal":
       return "secondary";
     case "Loan Repayment":
       return "outline";
@@ -56,12 +58,15 @@ function getTypeBadgeVariant(
 function getAmountColor(type: TransactionType): string {
   switch (type) {
     case "Income":
+    case "Interest Earned":
+    case "Dividend":
       return "text-green-600 dark:text-green-400";
     case "Expense":
     case "Interest Charge":
       return "text-red-600 dark:text-red-400";
     case "Transfer":
     case "Investment Contribution":
+    case "Investment Withdrawal":
     case "Loan Repayment":
       return "text-blue-600 dark:text-blue-400";
     case "Reversal":
@@ -74,6 +79,8 @@ function getAmountColor(type: TransactionType): string {
 function getAmountPrefix(type: TransactionType): string {
   switch (type) {
     case "Income":
+    case "Interest Earned":
+    case "Dividend":
       return "+";
     case "Expense":
     case "Interest Charge":
