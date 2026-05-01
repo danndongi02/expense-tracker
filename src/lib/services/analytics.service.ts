@@ -80,7 +80,7 @@ export function computeMonthlyTrend(transactions: Transaction[]): MonthlyTrend[]
     const monthKey = formatMonthKey(tx.transactionDate.toDate());
     const current = map.get(monthKey) || { income: 0, expenses: 0 };
 
-    if (tx.type === "Income") current.income += tx.amount;
+    if (tx.type === "Income" || tx.type === "Interest Earned" || tx.type === "Dividend") current.income += tx.amount;
     else if (tx.type === "Expense") current.expenses += tx.amount;
 
     map.set(monthKey, current);
@@ -109,7 +109,7 @@ export function computeWeeklyTrend(transactions: Transaction[]): TrendPoint[] {
   for (const tx of transactions) {
     const key = formatWeekKey(tx.transactionDate.toDate());
     const current = map.get(key) || { income: 0, expenses: 0 };
-    if (tx.type === "Income") current.income += tx.amount;
+    if (tx.type === "Income" || tx.type === "Interest Earned" || tx.type === "Dividend") current.income += tx.amount;
     else if (tx.type === "Expense") current.expenses += tx.amount;
     map.set(key, current);
   }
@@ -130,7 +130,7 @@ export function computeDailyTrend(transactions: Transaction[]): TrendPoint[] {
   for (const tx of transactions) {
     const key = formatDayKey(tx.transactionDate.toDate());
     const current = map.get(key) || { income: 0, expenses: 0 };
-    if (tx.type === "Income") current.income += tx.amount;
+    if (tx.type === "Income" || tx.type === "Interest Earned" || tx.type === "Dividend") current.income += tx.amount;
     else if (tx.type === "Expense") current.expenses += tx.amount;
     map.set(key, current);
   }
@@ -163,4 +163,38 @@ export function computeTrend(
         net: m.net,
       }));
   }
+}
+
+export interface FinancialKPIs {
+  savingsRate: number | null;
+  expenseRatio: number | null;
+  debtToIncome: number | null;
+  totalIncome: number;
+  totalExpenses: number;
+  totalLoanRepayments: number;
+}
+
+export function computeFinancialKPIs(transactions: Transaction[]): FinancialKPIs {
+  let totalIncome = 0;
+  let totalExpenses = 0;
+  let totalLoanRepayments = 0;
+
+  for (const tx of transactions) {
+    if (tx.type === "Income" || tx.type === "Interest Earned" || tx.type === "Dividend") {
+      totalIncome += tx.amount;
+    } else if (tx.type === "Expense") {
+      totalExpenses += tx.amount;
+    } else if (tx.type === "Loan Repayment") {
+      totalLoanRepayments += tx.amount;
+    }
+  }
+
+  return {
+    savingsRate: totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : null,
+    expenseRatio: totalIncome > 0 ? (totalExpenses / totalIncome) * 100 : null,
+    debtToIncome: totalIncome > 0 ? (totalLoanRepayments / totalIncome) * 100 : null,
+    totalIncome,
+    totalExpenses,
+    totalLoanRepayments,
+  };
 }

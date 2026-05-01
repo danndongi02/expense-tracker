@@ -12,6 +12,7 @@ import { accountSchema, type AccountFormData } from "@/lib/utils/validators";
 import { createAccount, updateAccount, createAccountWithLoan } from "@/lib/services/accounts.service";
 import { useAuth } from "@/lib/context/auth-context";
 import { Account } from "@/lib/types";
+import { ACCOUNT_SUBTYPES } from "@/lib/constants";
 
 // z.input = form input type (status is optional due to .default())
 // z.output = resolved type after defaults (status is always present)
@@ -110,6 +111,14 @@ export function AccountForm({
       form.setValue("loanPrincipal", openingBalance, { shouldValidate: false });
     }
   }, [openingBalance, showLoanFields]);
+
+  useEffect(() => {
+    const currentSubtype = form.getValues("subtype");
+    const validSubtypes = ACCOUNT_SUBTYPES[selectedType] ?? [];
+    if (currentSubtype && !validSubtypes.includes(currentSubtype)) {
+      form.setValue("subtype", "", { shouldValidate: false });
+    }
+  }, [selectedType, form]);
 
   async function onSubmit(data: AccountFormValues) {
     if (!user) return;
@@ -211,12 +220,23 @@ export function AccountForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Subtype</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. Mobile Money, Bank Account, MMF"
-                      {...field}
-                    />
-                  </FormControl>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select subtype" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {(ACCOUNT_SUBTYPES[selectedType] ?? []).map((subtype) => (
+                        <SelectItem key={subtype} value={subtype}>
+                          {subtype}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

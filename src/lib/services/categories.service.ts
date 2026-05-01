@@ -39,7 +39,7 @@ export async function getCategoriesByType(
   return snapshot.docs.map(mapDoc);
 }
 
-export function subscribeToCategoreis(
+export function subscribeToCategories(
   userId: string,
   callback: (categories: Category[]) => void
 ) {

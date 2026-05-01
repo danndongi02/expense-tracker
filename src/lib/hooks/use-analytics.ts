@@ -9,8 +9,10 @@ import {
   computeIncomeVsExpenses,
   computeMonthlyTrend,
   computeTrend,
+  computeFinancialKPIs,
   type TrendGranularity,
   type TrendPoint,
+  type FinancialKPIs,
 } from "@/lib/services/analytics.service";
 
 export function useAnalytics(transactions: Transaction[]) {
@@ -73,6 +75,11 @@ export function useAnalytics(transactions: Transaction[]) {
     [validTransactions, trendGranularity]
   );
 
+  const financialKPIs = useMemo(
+    () => computeFinancialKPIs(validFilteredTransactions),
+    [validFilteredTransactions]
+  );
+
   return {
     filteredTransactions,
     spendingByCategory,
@@ -82,5 +89,6 @@ export function useAnalytics(transactions: Transaction[]) {
     trendData,
     trendGranularity,
     setTrendGranularity,
+    financialKPIs,
   };
 }

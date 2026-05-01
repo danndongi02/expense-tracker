@@ -1,6 +1,40 @@
 import { Timestamp } from "firebase/firestore";
 
 export type AccountType = "Asset" | "Liability" | "Investment";
+
+export type AssetSubtype =
+  | "Checking Account"
+  | "Savings Account"
+  | "Cash"
+  | "M-Pesa"
+  | "Fixed Deposit"
+  | "Call Deposit"
+  | "Receivable"
+  | "Other";
+
+export type LiabilitySubtype =
+  | "Personal Loan"
+  | "Salary Advance"
+  | "Credit Card"
+  | "Overdraft"
+  | "SACCO Loan"
+  | "Mortgage"
+  | "HELB Loan"
+  | "Other Loan";
+
+export type InvestmentSubtype =
+  | "SACCO Shares"
+  | "Money Market Fund"
+  | "Treasury Bills"
+  | "Treasury Bonds"
+  | "NSE Stocks"
+  | "Unit Trust"
+  | "Real Estate"
+  | "Crypto"
+  | "Other";
+
+export type AccountSubtype = AssetSubtype | LiabilitySubtype | InvestmentSubtype;
+
 export type AccountStatus = "Active" | "Inactive";
 
 export type TransactionType =

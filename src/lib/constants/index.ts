@@ -1,4 +1,4 @@
-import { TransactionType, AccountType, CategoryTransactionType } from "@/lib/types";
+import { TransactionType, AccountType, CategoryTransactionType, AssetSubtype, LiabilitySubtype, InvestmentSubtype } from "@/lib/types";
 
 export const TRANSACTION_TYPES: TransactionType[] = [
   "Expense",
@@ -14,6 +14,46 @@ export const TRANSACTION_TYPES: TransactionType[] = [
 ];
 
 export const ACCOUNT_TYPES: AccountType[] = ["Asset", "Liability", "Investment"];
+
+export const ASSET_SUBTYPES: AssetSubtype[] = [
+  "Checking Account",
+  "Savings Account",
+  "Cash",
+  "M-Pesa",
+  "Fixed Deposit",
+  "Call Deposit",
+  "Receivable",
+  "Other",
+];
+
+export const LIABILITY_SUBTYPES: LiabilitySubtype[] = [
+  "Personal Loan",
+  "Salary Advance",
+  "Credit Card",
+  "Overdraft",
+  "SACCO Loan",
+  "Mortgage",
+  "HELB Loan",
+  "Other Loan",
+];
+
+export const INVESTMENT_SUBTYPES: InvestmentSubtype[] = [
+  "SACCO Shares",
+  "Money Market Fund",
+  "Treasury Bills",
+  "Treasury Bonds",
+  "NSE Stocks",
+  "Unit Trust",
+  "Real Estate",
+  "Crypto",
+  "Other",
+];
+
+export const ACCOUNT_SUBTYPES: Record<AccountType, readonly string[]> = {
+  Asset: ASSET_SUBTYPES,
+  Liability: LIABILITY_SUBTYPES,
+  Investment: INVESTMENT_SUBTYPES,
+};
 
 export const TRANSACTION_TYPE_COLORS: Record<TransactionType, string> = {
   Expense: "destructive",
@@ -35,25 +75,28 @@ export const ACCOUNT_TYPE_COLORS: Record<AccountType, string> = {
 };
 
 export const DEFAULT_EXPENSE_CATEGORIES = [
-  { name: "Transport", description: "Fare, fuel" },
-  { name: "Food & Dining", description: "Snacks, eating out, ordering, drinks, alcohol" },
-  { name: "Savings & Investments", description: "All savings and investments" },
-  { name: "Bills & Subscriptions", description: "Spotify, internet, minutes" },
-  { name: "Loan repayment", description: "Loan repayment" },
+  { name: "Transport", description: "Fare, fuel, matatu, Uber" },
+  { name: "Food & Dining", description: "Snacks, eating out, ordering in, drinks" },
+  { name: "Utilities", description: "Electricity, water, internet, gas" },
+  { name: "Rent / Housing", description: "Rent, service charge, caretaker" },
+  { name: "Healthcare", description: "Hospital, pharmacy, insurance premiums" },
+  { name: "Education", description: "School fees, books, courses" },
+  { name: "Personal Care", description: "Haircut, salon, toiletries" },
+  { name: "Shopping / Clothing", description: "Clothes, shoes, household items" },
+  { name: "Entertainment", description: "Going out, events, streaming, sherehe" },
   { name: "Family & Friends", description: "Sending to family or friends, gifting" },
-  { name: "Shopping", description: "Buying of essentials and room shopping" },
-  { name: "Personal development", description: "Books, scholarships, clothes, personal things" },
-  { name: "Misc.", description: "Anything that doesn't fall in any of the categories" },
-  { name: "Entertainment", description: "Going out, drinks & liquor, sherehe" },
-  { name: "Transaction costs", description: "Transaction costs" },
-  { name: "Church", description: "Anything to do with the church" },
+  { name: "Church / Charity", description: "Tithe, offerings, donations" },
+  { name: "Bills & Subscriptions", description: "Spotify, Netflix, recurring software" },
+  { name: "Transaction costs", description: "M-Pesa charges, bank fees, transfer fees" },
+  { name: "Miscellaneous", description: "Anything that doesn't fit another category" },
 ];
 
 export const DEFAULT_INCOME_CATEGORIES = [
-  { name: "Intric Solves", description: "Main job" },
-  { name: "Dev work", description: "Any other dev work like side projects" },
-  { name: "Freelance", description: "Upwork" },
-  { name: "Family & Friends", description: "Received from family and friends" },
+  { name: "Salary / Employment", description: "Monthly salary or wages" },
+  { name: "Freelance Work", description: "Upwork, contract, one-off client projects" },
+  { name: "Business Income", description: "Revenue from a business you run" },
+  { name: "Investment Returns", description: "Dividends, interest, capital gains" },
+  { name: "Family & Friends", description: "Money received from family or friends" },
   { name: "Other", description: "Any other unexpected income" },
 ];
 

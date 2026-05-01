@@ -14,6 +14,7 @@ import { SpendingByCategoryCard } from "@/components/dashboard/spending-by-categ
 import { IncomeByCategoryCard } from "@/components/dashboard/income-by-category-card";
 import { RecentTransactionsCard } from "@/components/dashboard/recent-transactions-card";
 import { LoanSummaryCard } from "@/components/dashboard/loan-summary-card";
+import { FinancialKpiCard } from "@/components/dashboard/financial-kpi-card";
 
 export default function DashboardPage() {
   const { transactions, loading: txLoading } = useTransactions(200);
@@ -26,6 +27,7 @@ export default function DashboardPage() {
     trendGranularity,
     setTrendGranularity,
     filteredTransactions,
+    financialKPIs,
   } = useAnalytics(transactions);
   const {
     balances,
@@ -43,6 +45,9 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <PeriodSelector />
       </div>
+
+      {/* Financial Health KPIs */}
+      <FinancialKpiCard kpis={financialKPIs} loading={txLoading} />
 
       {/* Row 1: Net Worth + Income vs Expenses */}
       <div className="grid gap-4 md:grid-cols-2">

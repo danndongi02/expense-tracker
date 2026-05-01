@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ACCOUNT_SUBTYPES } from "@/lib/constants";
 
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -48,6 +49,15 @@ export const accountSchema = z.object({
     if (!data.loanStartDate) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Start date is required", path: ["loanStartDate"] });
     }
+  }
+
+  const validSubtypes = ACCOUNT_SUBTYPES[data.type];
+  if (validSubtypes && !validSubtypes.includes(data.subtype)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please select a valid subtype for this account type",
+      path: ["subtype"],
+    });
   }
 });
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Category } from "@/lib/types";
-import { subscribeToCategoreis } from "@/lib/services/categories.service";
+import { subscribeToCategories } from "@/lib/services/categories.service";
 import { useAuth } from "@/lib/context/auth-context";
 
 export function useCategories() {
@@ -12,7 +12,7 @@ export function useCategories() {
 
   useEffect(() => {
     if (!user) return;
-    const unsubscribe = subscribeToCategoreis(user.uid, (data) => {
+    const unsubscribe = subscribeToCategories(user.uid, (data) => {
       setCategories(data);
       setLoading(false);
     });
