@@ -193,3 +193,13 @@ export type AccountFormData = z.infer<typeof accountSchema>;
 export type CategoryFormData = z.infer<typeof categorySchema>;
 export type SubscriptionFormData = z.infer<typeof subscriptionSchema>;
 export type LoanFormData = z.infer<typeof loanSchema>;
+
+export const budgetSchema = z.object({
+  categoryId: z.string().min(1, "Category is required"),
+  categoryName: z.string().min(1, "Category name is required"),
+  month: z.string().regex(/^\d{4}-\d{2}$/, "Must be yyyy-MM format"),
+  budgetAmount: z.number().positive("Budget amount must be greater than 0"),
+  alertThreshold: z.number().min(0).max(100).default(75),
+});
+
+export type BudgetFormData = z.infer<typeof budgetSchema>;

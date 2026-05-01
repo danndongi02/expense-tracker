@@ -171,6 +171,32 @@ export interface NetWorthSnapshot {
   createdAt: Timestamp;
 }
 
+export interface Budget {
+  id: string;
+  categoryId: string;
+  categoryName: string;   // Denormalized — survives category deletion
+  month: string;          // "yyyy-MM"
+  budgetAmount: number;   // > 0
+  alertThreshold: number; // 0–100 (percentage)
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface BudgetComparison {
+  budget: Budget;
+  actual: number;         // Sum of matching expense transactions for the period
+  percentage: number;     // actual / budgetAmount * 100
+  status: "ok" | "warning" | "exceeded";
+}
+
+export interface BudgetSummary {
+  totalBudgeted: number;
+  totalSpent: number;
+  overallPercentage: number;
+  categoriesOver: number;    // Count where status === "exceeded"
+  categoriesWarning: number; // Count where status === "warning"
+}
+
 export interface TransactionCounter {
   lastSequence: number;
 }

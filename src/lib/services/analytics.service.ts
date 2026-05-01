@@ -1,4 +1,4 @@
-import { Transaction } from "@/lib/types";
+import { Transaction, Budget, BudgetComparison, BudgetSummary } from "@/lib/types";
 import { formatMonthKey, formatWeekKey, formatDayKey } from "@/lib/utils/date";
 
 export type TrendGranularity = "daily" | "weekly" | "monthly";
@@ -196,5 +196,42 @@ export function computeFinancialKPIs(transactions: Transaction[]): FinancialKPIs
     totalIncome,
     totalExpenses,
     totalLoanRepayments,
+  };
+}
+
+export function computeBudgetVsActual(
+  expenses: Transaction[],  // Must be pre-filtered: type==="Expense", reversals excluded, correct period
+  budgets: Budget[]
+): BudgetComparison[] {
+  const spendingMap = new Map<string, number>();
+  for (const tx of expenses) {
+    if (tx.type !== "Expense") continue;
+    const key = tx.categoryId ?? "";
+    spendingMap.set(key, (spendingMap.get(key) ?? 0) + tx.amount);
+  }
+  return budgets
+    .map((budget) => {
+      const actual = spendingMap.get(budget.categoryId) ?? 0;
+      const percentage = (actual / budget.budgetAmount) * 100;
+      const status: BudgetComparison["status"] =
+        percentage >= 100
+          ? "exceeded"
+          : percentage >= budget.alertThreshold
+          ? "warning"
+          : "ok";
+      return { budget, actual, percentage, status };
+    })
+    .sort((a, b) => b.percentage - a.percentage);
+}
+
+export function computeBudgetSummary(comparisons: BudgetComparison[]): BudgetSummary {
+  const totalBudgeted = comparisons.reduce((s, c) => s + c.budget.budgetAmount, 0);
+  const totalSpent = comparisons.reduce((s, c) => s + c.actual, 0);
+  return {
+    totalBudgeted,
+    totalSpent,
+    overallPercentage: totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0,
+    categoriesOver: comparisons.filter((c) => c.status === "exceeded").length,
+    categoriesWarning: comparisons.filter((c) => c.status === "warning").length,
   };
 }
