@@ -4,6 +4,9 @@ import { useTransactions } from "@/lib/hooks/use-transactions";
 import { useAnalytics } from "@/lib/hooks/use-analytics";
 import { useBalances } from "@/lib/hooks/use-balances";
 import { useLoans } from "@/lib/hooks/use-loans";
+import { useBudgets } from "@/lib/hooks/use-budgets";
+import { usePeriodFilter } from "@/lib/context/period-filter-context";
+import { format } from "date-fns";
 
 import { PeriodSelector } from "@/components/dashboard/period-selector";
 import { NetWorthCard } from "@/components/dashboard/net-worth-card";
@@ -15,6 +18,7 @@ import { IncomeByCategoryCard } from "@/components/dashboard/income-by-category-
 import { RecentTransactionsCard } from "@/components/dashboard/recent-transactions-card";
 import { LoanSummaryCard } from "@/components/dashboard/loan-summary-card";
 import { FinancialKpiCard } from "@/components/dashboard/financial-kpi-card";
+import { BudgetOverviewCard } from "@/components/budgets/budget-overview-card";
 
 export default function DashboardPage() {
   const { transactions, loading: txLoading } = useTransactions(200);
@@ -38,6 +42,9 @@ export default function DashboardPage() {
     loading: balancesLoading,
   } = useBalances();
   const { loans, loading: loansLoading } = useLoans();
+  const { preset } = usePeriodFilter();
+  const currentMonth = format(new Date(), "yyyy-MM");
+  const { budgets: currentMonthBudgets } = useBudgets(currentMonth);
 
   return (
     <div className="space-y-6">
@@ -76,9 +83,16 @@ export default function DashboardPage() {
 
       {/* Row 3: Spending by Category + Income by Category */}
       <div className="grid gap-4 md:grid-cols-2">
-        <SpendingByCategoryCard data={spendingByCategory} loading={txLoading} />
+        <SpendingByCategoryCard
+          data={spendingByCategory}
+          loading={txLoading}
+          budgets={preset === "current-month" ? currentMonthBudgets : []}
+        />
         <IncomeByCategoryCard data={incomeByCategory} loading={txLoading} />
       </div>
+
+      {/* Budget Overview */}
+      <BudgetOverviewCard transactions={transactions} loading={txLoading} />
 
       {/* Row 4: Account Balances + Recent Transactions */}
       <div className="grid gap-4 md:grid-cols-2">

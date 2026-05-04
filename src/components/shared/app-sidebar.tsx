@@ -16,6 +16,7 @@ import {
   Settings,
   LogOut,
   ChevronUp,
+  Target,
 } from "lucide-react";
 import {
   Sidebar,
@@ -42,6 +43,7 @@ const navItems = [
   { title: "Accounts", href: "/accounts", icon: Wallet },
   { title: "Categories", href: "/categories", icon: Tag },
   { title: "Subscriptions", href: "/subscriptions", icon: CreditCard },
+  { title: "Budgets", href: "/budgets", icon: Target },
   { title: "Loans", href: "/loans", icon: Landmark },
   { title: "Reports", href: "/reports", icon: BarChart3 },
   { title: "Settings", href: "/settings", icon: Settings },

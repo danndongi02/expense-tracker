@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Pie, PieChart, Cell } from "recharts";
 import {
   Card,
@@ -16,10 +17,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils/currency";
 import { CategoryBreakdown } from "@/lib/services/analytics.service";
+import { Budget } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface SpendingByCategoryCardProps {
   data: CategoryBreakdown[];
   loading: boolean;
+  budgets?: Budget[];
 }
 
 const CHART_COLORS = [
@@ -36,6 +40,7 @@ const CHART_COLORS = [
 export function SpendingByCategoryCard({
   data,
   loading,
+  budgets,
 }: SpendingByCategoryCardProps) {
   if (loading) {
     return (
@@ -121,24 +126,66 @@ export function SpendingByCategoryCard({
             </Pie>
           </PieChart>
         </ChartContainer>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {topCategories.map((item, index) => (
-            <div key={item.category} className="flex items-center gap-2 text-sm">
-              <div
-                className="h-2.5 w-2.5 shrink-0 rounded-full"
-                style={{
-                  backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
-                }}
-              />
-              <span className="truncate text-muted-foreground">
-                {item.category}
-              </span>
-              <span className="ml-auto font-medium">
-                {formatCurrency(item.amount)}
-              </span>
-            </div>
-          ))}
-        </div>
+        {budgets && budgets.length > 0 ? (
+          <div className="mt-4 grid grid-cols-[1fr_auto_auto_auto] gap-2">
+            {topCategories.map((item, index) => {
+              const matchingBudget = budgets?.find((b) => b.categoryName === item.category);
+              let vsBudgetEl: React.ReactNode = <span className="text-muted-foreground">—</span>;
+              if (matchingBudget) {
+                const pct = (item.amount / matchingBudget.budgetAmount) * 100;
+                const color =
+                  pct >= 100
+                    ? "text-red-600"
+                    : pct >= matchingBudget.alertThreshold
+                    ? "text-amber-600"
+                    : "text-green-600";
+                vsBudgetEl = <span className={cn("font-medium", color)}>{pct.toFixed(0)}%</span>;
+              }
+              return (
+                <React.Fragment key={item.category}>
+                  <div className="flex items-center gap-2 text-sm">
+                    <div
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{
+                        backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
+                      }}
+                    />
+                    <span className="truncate text-muted-foreground">
+                      {item.category}
+                    </span>
+                    <span className="ml-auto font-medium">
+                      {formatCurrency(item.amount)}
+                    </span>
+                  </div>
+                  <span className="text-sm text-muted-foreground self-center">
+                    {matchingBudget ? formatCurrency(matchingBudget.budgetAmount) : "—"}
+                  </span>
+                  <span className="text-sm self-center">{vsBudgetEl}</span>
+                  <span />
+                </React.Fragment>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {topCategories.map((item, index) => (
+              <div key={item.category} className="flex items-center gap-2 text-sm">
+                <div
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{
+                    backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
+                  }}
+                />
+                <span className="truncate text-muted-foreground">
+                  {item.category}
+                </span>
+                <span className="ml-auto font-medium">
+                  {formatCurrency(item.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
