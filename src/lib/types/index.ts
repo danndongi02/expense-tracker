@@ -207,3 +207,18 @@ export interface AccountBalance {
   currentBalance: number;
   balanceCheck: "OK" | "Error";
 }
+
+export type SavingsGoalStatus = "Active" | "Achieved" | "Abandoned";
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  targetDate: Timestamp;
+  linkedAccountId?: string;
+  linkedAccountName?: string;
+  notes?: string;
+  status: SavingsGoalStatus;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
