@@ -203,3 +203,15 @@ export const budgetSchema = z.object({
 });
 
 export type BudgetFormData = z.infer<typeof budgetSchema>;
+
+export const savingsGoalSchema = z.object({
+  name: z.string().min(1, "Goal name is required"),
+  targetAmount: z.number().positive("Target amount must be positive"),
+  targetDate: z.date(),
+  linkedAccountId: z.string().optional(),
+  linkedAccountName: z.string().optional(),
+  notes: z.string().optional(),
+  status: z.enum(["Active", "Achieved", "Abandoned"]).default("Active"),
+});
+
+export type SavingsGoalFormData = z.infer<typeof savingsGoalSchema>;
