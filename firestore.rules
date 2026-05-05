@@ -37,6 +37,9 @@ service cloud.firestore {
       match /counters/{counterId} {
         allow read, write: if isOwner(userId);
       }
+      match /budgets/{budgetId} {
+        allow read, write: if isOwner(userId);
+      }
     }
   }
 }
