@@ -112,7 +112,7 @@ export function SavingsGoalForm({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog key={goal?.id ?? "new"} open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Goal" : "New Savings Goal"}</DialogTitle>
@@ -177,7 +177,10 @@ export function SavingsGoalForm({
                           ? format(field.value, "yyyy-MM-dd")
                           : ""
                       }
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
+                      onChange={(e) => {
+                        const [year, month, day] = e.target.value.split("-").map(Number);
+                        field.onChange(new Date(year, month - 1, day));
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
