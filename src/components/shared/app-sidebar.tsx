@@ -17,6 +17,7 @@ import {
   LogOut,
   ChevronUp,
   Target,
+  PiggyBank,
 } from "lucide-react";
 import {
   Sidebar,
@@ -44,6 +45,7 @@ const navItems = [
   { title: "Categories", href: "/categories", icon: Tag },
   { title: "Subscriptions", href: "/subscriptions", icon: CreditCard },
   { title: "Budgets", href: "/budgets", icon: Target },
+  { title: "Savings Goals", href: "/savings-goals", icon: PiggyBank },
   { title: "Loans", href: "/loans", icon: Landmark },
   { title: "Reports", href: "/reports", icon: BarChart3 },
   { title: "Settings", href: "/settings", icon: Settings },

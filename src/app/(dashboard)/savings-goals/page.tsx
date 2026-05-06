@@ -35,7 +35,7 @@ function SavingsGoalsSkeleton() {
 
 export default function SavingsGoalsPage() {
   const { user } = useAuth();
-  const { goals, loading: goalsLoading } = useSavingsGoals();
+  const { goals, activeGoals, loading: goalsLoading } = useSavingsGoals();
   const { balances, loading: balancesLoading } = useBalances();
   const [formOpen, setFormOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | undefined>();
@@ -50,10 +50,10 @@ export default function SavingsGoalsPage() {
     return map;
   }, [balances]);
 
-  const activeGoals = goals.filter((g) => g.status === "Active");
   const totalTarget = activeGoals.reduce((sum, g) => sum + g.targetAmount, 0);
   const totalSaved = activeGoals.reduce((sum, g) => {
-    return sum + (g.linkedAccountId ? (balanceMap.get(g.linkedAccountId) ?? 0) : 0);
+    const bal = g.linkedAccountId ? (balanceMap.get(g.linkedAccountId) ?? 0) : 0;
+    return sum + Math.max(0, bal);
   }, 0);
 
   function handleAdd() {
@@ -167,6 +167,7 @@ export default function SavingsGoalsPage() {
         key={editingGoal?.id ?? "new"}
         onDelete={(g) => {
           setFormOpen(false);
+          setEditingGoal(undefined);
           setDeleteTarget(g);
         }}
       />

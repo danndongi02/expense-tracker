@@ -19,6 +19,7 @@ import { RecentTransactionsCard } from "@/components/dashboard/recent-transactio
 import { LoanSummaryCard } from "@/components/dashboard/loan-summary-card";
 import { FinancialKpiCard } from "@/components/dashboard/financial-kpi-card";
 import { BudgetOverviewCard } from "@/components/budgets/budget-overview-card";
+import { SavingsGoalOverviewCard } from "@/components/dashboard/savings-goal-overview-card";
 
 export default function DashboardPage() {
   const { transactions, loading: txLoading } = useTransactions(200);
@@ -93,6 +94,9 @@ export default function DashboardPage() {
 
       {/* Budget Overview */}
       <BudgetOverviewCard transactions={transactions} loading={txLoading} />
+
+      {/* Savings Goals Overview */}
+      <SavingsGoalOverviewCard balances={balances} loading={balancesLoading} />
 
       {/* Row 4: Account Balances + Recent Transactions */}
       <div className="grid gap-4 md:grid-cols-2">
