@@ -40,11 +40,13 @@ export function SavingsGoalCard({
   const isOverdue = daysRemaining < 0 && goal.status === "Active";
 
   const progressBarColor =
-    percentage >= 100
-      ? "bg-green-500"
-      : isOverdue
-        ? "bg-red-500"
-        : "bg-blue-500";
+    !hasLinkedAccount
+      ? "bg-muted-foreground/30"
+      : percentage >= 100
+        ? "bg-green-500"
+        : isOverdue
+          ? "bg-red-500"
+          : "bg-blue-500";
 
   return (
     <Card>
