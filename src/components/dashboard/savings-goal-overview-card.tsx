@@ -8,19 +8,15 @@ import { buttonVariants } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useSavingsGoals } from "@/lib/hooks/use-savings-goals";
 import { differenceInDays } from "date-fns";
-import type { AccountBalance } from "@/lib/types";
 
 interface SavingsGoalOverviewCardProps {
-  balances: AccountBalance[];
   loading: boolean;
 }
 
-export function SavingsGoalOverviewCard({ balances, loading }: SavingsGoalOverviewCardProps) {
+export function SavingsGoalOverviewCard({ loading }: SavingsGoalOverviewCardProps) {
   const { activeGoals, loading: goalsLoading } = useSavingsGoals();
 
   const isLoading = loading || goalsLoading;
-
-  const balanceMap = new Map(balances.map((b) => [b.account.id, b.currentBalance]));
 
   if (isLoading) {
     return (
@@ -60,10 +56,7 @@ export function SavingsGoalOverviewCard({ balances, loading }: SavingsGoalOvervi
         ) : (
           <div className="space-y-3">
             {activeGoals.slice(0, 5).map((goal) => {
-              const current = Math.max(
-                0,
-                goal.linkedAccountId ? (balanceMap.get(goal.linkedAccountId) ?? 0) : 0
-              );
+              const current = goal.currentAmount ?? 0;
               const percentage =
                 goal.targetAmount > 0
                   ? Math.min((current / goal.targetAmount) * 100, 100)

@@ -146,8 +146,11 @@ export function TransactionTable({ transactions, onDelete, onReverse }: Transact
             <TableCell>
               <Badge variant={getTypeBadgeVariant(tx.type)}>{tx.type}</Badge>
             </TableCell>
-            <TableCell className="max-w-[200px] truncate">
-              {tx.description}
+            <TableCell className="max-w-[200px]">
+              <span className="block truncate">{tx.description}</span>
+              {tx.payee && (
+                <span className="block truncate text-xs text-muted-foreground">{tx.payee}</span>
+              )}
             </TableCell>
             <TableCell className={`text-right font-medium ${getAmountColor(tx.type)}`}>
               {getAmountPrefix(tx.type)}

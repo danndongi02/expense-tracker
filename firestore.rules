@@ -43,6 +43,9 @@ service cloud.firestore {
       match /savingsGoals/{goalId} {
         allow read, write: if isOwner(userId);
       }
+      match /payees/{payeeId} {
+        allow read, write: if isOwner(userId);
+      }
     }
   }
 }

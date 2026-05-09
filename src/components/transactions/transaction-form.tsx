@@ -8,10 +8,14 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { useAccounts } from "@/lib/hooks/use-accounts";
 import { useCategories } from "@/lib/hooks/use-categories";
+import { useSavingsGoals } from "@/lib/hooks/use-savings-goals";
+import { usePayees } from "@/lib/hooks/use-payees";
 import { createTransaction } from "@/lib/services/transactions.service";
+import { PayeeCombobox } from "@/components/transactions/payee-combobox";
 import { TransactionType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -78,6 +82,8 @@ const transactionFormSchema = z
     toAccountId: z.string().optional(),
     categoryId: z.string().optional(),
     originalTransactionId: z.string().optional(),
+    savingsGoalId: z.string().optional(),
+    payee: z.string().optional(),
     notes: z.string().optional(),
     transactionCost: z.number().min(0).optional().default(0),
   })
@@ -175,6 +181,8 @@ export function TransactionForm() {
   const { user } = useAuth();
   const { activeAccounts, assetAccounts, liabilityAccounts, investmentAccounts } = useAccounts();
   const { expenseCategories, incomeCategories } = useCategories();
+  const { activeGoals } = useSavingsGoals();
+  const { payees } = usePayees();
   const [dateOpen, setDateOpen] = useState(false);
 
   const form = useForm<TransactionFormInput, unknown, TransactionFormValues>({
@@ -188,12 +196,40 @@ export function TransactionForm() {
       toAccountId: "",
       categoryId: "",
       originalTransactionId: "",
+      savingsGoalId: "",
+      payee: "",
       notes: "",
       transactionCost: 0,
     },
   });
 
   const selectedType = form.watch("type");
+  const selectedAccountId = form.watch("accountId");
+  const selectedToAccountId = form.watch("toAccountId");
+
+  // Map linkedAccountId → goal for quick lookup
+  const accountToGoalMap = new Map(
+    activeGoals
+      .filter((g) => g.linkedAccountId)
+      .map((g) => [g.linkedAccountId!, g])
+  );
+
+  // The account that receives money for this transaction type
+  const creditAccountId =
+    selectedType === "Transfer" || selectedType === "Investment Contribution"
+      ? selectedToAccountId
+      : selectedType === "Income" ||
+          selectedType === "Interest Earned" ||
+          selectedType === "Dividend"
+        ? selectedAccountId
+        : undefined;
+
+  const linkedGoal = creditAccountId ? accountToGoalMap.get(creditAccountId) : undefined;
+
+  // Auto-select the goal when a linked account is chosen; clear otherwise
+  useEffect(() => {
+    form.setValue("savingsGoalId", linkedGoal ? linkedGoal.id : "");
+  }, [linkedGoal?.id]);
 
   function getAccountOptions() {
     switch (selectedType) {
@@ -307,6 +343,14 @@ export function TransactionForm() {
 
   const showOriginalTransaction = selectedType === "Reversal";
 
+  const showPayee =
+    selectedType === "Expense" ||
+    selectedType === "Income" ||
+    selectedType === "Loan Repayment" ||
+    selectedType === "Interest Charge" ||
+    selectedType === "Interest Earned" ||
+    selectedType === "Dividend";
+
   async function onSubmit(data: TransactionFormValues) {
     if (!user) return;
 
@@ -331,6 +375,8 @@ export function TransactionForm() {
         toAccountName: toAccount?.name || undefined,
         categoryId: data.categoryId || undefined,
         categoryName: category?.name || undefined,
+        savingsGoalId: data.savingsGoalId || undefined,
+        payee: data.payee || undefined,
         notes: data.notes || undefined,
         originalTransactionId: data.originalTransactionId || undefined,
       });
@@ -365,6 +411,8 @@ export function TransactionForm() {
         toAccountId: "",
         categoryId: "",
         originalTransactionId: "",
+        savingsGoalId: "",
+        payee: "",
         notes: "",
         transactionCost: 0,
       });
@@ -399,6 +447,7 @@ export function TransactionForm() {
                       form.setValue("toAccountId", "");
                       form.setValue("categoryId", "");
                       form.setValue("originalTransactionId", "");
+                      form.setValue("savingsGoalId", "");
                     }}
                   >
                     <FormControl>
@@ -472,6 +521,27 @@ export function TransactionForm() {
                 </FormItem>
               )}
             />
+
+            {/* Payee / Merchant */}
+            {showPayee && (
+              <FormField
+                control={form.control}
+                name="payee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payee / Merchant (optional)</FormLabel>
+                    <FormControl>
+                      <PayeeCombobox
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                        payees={payees}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* Amount */}
             <FormField
@@ -577,6 +647,31 @@ export function TransactionForm() {
                             {account.name}
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Savings Goal Tag — shown when the destination account is linked to an active goal */}
+            {linkedGoal && (
+              <FormField
+                control={form.control}
+                name="savingsGoalId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apply to Savings Goal (optional)</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Skip — don't tag this transaction" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">Skip</SelectItem>
+                        <SelectItem value={linkedGoal.id}>{linkedGoal.name}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

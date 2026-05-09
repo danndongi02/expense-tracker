@@ -20,19 +20,13 @@ const statusBadgeVariant: Record<
 
 interface SavingsGoalCardProps {
   goal: SavingsGoal;
-  currentAmount: number;
-  hasLinkedAccount: boolean;
   onEdit: (goal: SavingsGoal) => void;
   onDelete: (goal: SavingsGoal) => void;
 }
 
-export function SavingsGoalCard({
-  goal,
-  currentAmount,
-  hasLinkedAccount,
-  onEdit,
-  onDelete,
-}: SavingsGoalCardProps) {
+export function SavingsGoalCard({ goal, onEdit, onDelete }: SavingsGoalCardProps) {
+  const currentAmount = goal.currentAmount ?? 0;
+  const hasLinkedAccount = !!goal.linkedAccountId;
   const percentage = goal.targetAmount > 0
     ? Math.min((currentAmount / goal.targetAmount) * 100, 100)
     : 0;

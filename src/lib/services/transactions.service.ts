@@ -16,10 +16,15 @@ import {
   db,
   QuerySnapshot,
 } from "@/lib/firebase/firestore";
-import { doc, runTransaction } from "firebase/firestore";
+import { doc, runTransaction, increment } from "firebase/firestore";
 import { Transaction, LedgerEntry, TransactionType, Loan } from "@/lib/types";
 import { createLedgerEntries, generateEntryId } from "@/lib/utils/ledger";
 import { formatTransactionId } from "@/lib/utils/transaction-id";
+
+function normalizePayeeId(name: string): string {
+  const id = name.toLowerCase().trim().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+  return id || "other";
+}
 
 function mapDoc(d: any): Transaction {
   return { id: d.id, ...d.data() } as Transaction;
@@ -72,6 +77,8 @@ export interface CreateTransactionInput {
   toAccountName?: string;
   categoryId?: string;
   categoryName?: string;
+  savingsGoalId?: string;
+  payee?: string;
   notes?: string;
   originalTransactionId?: string;
 }
@@ -108,6 +115,8 @@ export async function createTransaction(
     ...(input.categoryName !== undefined && { categoryName: input.categoryName }),
     ...(input.notes !== undefined && { notes: input.notes }),
     ...(input.originalTransactionId !== undefined && { originalTransactionId: input.originalTransactionId }),
+    ...(input.savingsGoalId !== undefined && { savingsGoalId: input.savingsGoalId }),
+    ...(input.payee !== undefined && { payee: input.payee }),
   };
   batch.set(txRef, txData);
 
@@ -129,6 +138,18 @@ export async function createTransaction(
       ...entry,
       id: generateEntryId(),
     });
+  }
+
+  // Atomically increment the linked savings goal's currentAmount.
+  if (input.savingsGoalId) {
+    const goalRef = getUserDoc(userId, "savingsGoals", input.savingsGoalId);
+    batch.update(goalRef, { currentAmount: increment(input.amount), updatedAt: now });
+  }
+
+  // Upsert payee document so it appears in autocomplete suggestions.
+  if (input.payee) {
+    const payeeRef = getUserDoc(userId, "payees", normalizePayeeId(input.payee));
+    batch.set(payeeRef, { name: input.payee, lastUsed: now }, { merge: true });
   }
 
   // Fix #1: Loan balance update is now inside the same writeBatch for atomicity.
@@ -304,6 +325,12 @@ export async function reverseTransaction(
   for (const entry of entries) {
     const entryRef = doc(getUserCollection(userId, "ledgerEntries"));
     batch.set(entryRef, { ...entry, id: generateEntryId() });
+  }
+
+  // Reverse the savings goal contribution if the original was tagged.
+  if (original.savingsGoalId) {
+    const goalRef = getUserDoc(userId, "savingsGoals", original.savingsGoalId);
+    batch.update(goalRef, { currentAmount: increment(-original.amount), updatedAt: now });
   }
 
   // Fix #2: Apply inverse loan adjustment inside the same batch.

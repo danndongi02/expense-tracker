@@ -41,10 +41,11 @@ export async function getSavingsGoals(userId: string): Promise<SavingsGoal[]> {
 
 export async function createSavingsGoal(
   userId: string,
-  data: Omit<SavingsGoal, "id" | "createdAt" | "updatedAt">
+  data: Omit<SavingsGoal, "id" | "createdAt" | "updatedAt" | "currentAmount">
 ): Promise<string> {
   const docRef = await addDoc(getUserCollection(userId, "savingsGoals"), {
     ...data,
+    currentAmount: 0,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   });

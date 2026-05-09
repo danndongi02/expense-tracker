@@ -17,6 +17,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -30,6 +38,7 @@ import { useNetWorthHistory } from "@/lib/hooks/use-net-worth";
 import {
   computeSpendingByCategory,
   computeMonthlyTrend,
+  computeSpendingByPayee,
 } from "@/lib/services/analytics.service";
 import { formatCurrency } from "@/lib/utils/currency";
 import { format, parseISO } from "date-fns";
@@ -125,6 +134,11 @@ export default function ReportsPage() {
 
   const spendingByCategory = useMemo(
     () => computeSpendingByCategory(transactions),
+    [transactions]
+  );
+
+  const spendingByPayee = useMemo(
+    () => computeSpendingByPayee(transactions),
     [transactions]
   );
 
@@ -496,6 +510,51 @@ export default function ReportsPage() {
           </Card>
         )}
       </div>
+
+      {/* Spending by Merchant */}
+      {loading ? (
+        <ChartSkeleton title="Spending by Merchant" />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Spending by Merchant</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {spendingByPayee.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No merchant data yet. Add a Payee when recording expense transactions to see spending by merchant.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-8">#</TableHead>
+                    <TableHead>Merchant</TableHead>
+                    <TableHead className="text-right">Transactions</TableHead>
+                    <TableHead className="text-right">Total Spent</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {spendingByPayee.map((item, index) => (
+                    <TableRow key={item.payee}>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="font-medium">{item.payee}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {item.count}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(item.amount)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

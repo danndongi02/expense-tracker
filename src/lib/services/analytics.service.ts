@@ -8,6 +8,27 @@ export interface CategoryBreakdown {
   amount: number;
 }
 
+export interface PayeeBreakdown {
+  payee: string;
+  amount: number;
+  count: number;
+}
+
+export function computeSpendingByPayee(transactions: Transaction[]): PayeeBreakdown[] {
+  const map = new Map<string, { amount: number; count: number }>();
+
+  for (const tx of transactions) {
+    if (tx.type !== "Expense") continue;
+    if (!tx.payee) continue;
+    const entry = map.get(tx.payee) ?? { amount: 0, count: 0 };
+    map.set(tx.payee, { amount: entry.amount + tx.amount, count: entry.count + 1 });
+  }
+
+  return Array.from(map.entries())
+    .map(([payee, { amount, count }]) => ({ payee, amount, count }))
+    .sort((a, b) => b.amount - a.amount);
+}
+
 export interface MonthlyTrend {
   month: string;
   income: number;

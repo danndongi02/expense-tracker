@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { PlusIcon, PiggyBank } from "lucide-react";
 import { useSavingsGoals } from "@/lib/hooks/use-savings-goals";
-import { useBalances } from "@/lib/hooks/use-balances";
 import { useAuth } from "@/lib/context/auth-context";
 import { SavingsGoal } from "@/lib/types";
 import { deleteSavingsGoal } from "@/lib/services/savings-goals.service";
@@ -36,25 +35,13 @@ function SavingsGoalsSkeleton() {
 export default function SavingsGoalsPage() {
   const { user } = useAuth();
   const { goals, activeGoals, loading: goalsLoading } = useSavingsGoals();
-  const { balances, loading: balancesLoading } = useBalances();
   const [formOpen, setFormOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<SavingsGoal | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const balanceMap = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const b of balances) {
-      map.set(b.account.id, b.currentBalance);
-    }
-    return map;
-  }, [balances]);
-
   const totalTarget = activeGoals.reduce((sum, g) => sum + g.targetAmount, 0);
-  const totalSaved = activeGoals.reduce((sum, g) => {
-    const bal = g.linkedAccountId ? (balanceMap.get(g.linkedAccountId) ?? 0) : 0;
-    return sum + Math.max(0, bal);
-  }, 0);
+  const totalSaved = activeGoals.reduce((sum, g) => sum + (g.currentAmount ?? 0), 0);
 
   function handleAdd() {
     setEditingGoal(undefined);
@@ -96,7 +83,7 @@ export default function SavingsGoalsPage() {
         </Button>
       </div>
 
-      {goalsLoading || balancesLoading ? (
+      {goalsLoading ? (
         <SavingsGoalsSkeleton />
       ) : (
         <>
@@ -145,12 +132,6 @@ export default function SavingsGoalsPage() {
                 <SavingsGoalCard
                   key={goal.id}
                   goal={goal}
-                  currentAmount={
-                    goal.linkedAccountId
-                      ? (balanceMap.get(goal.linkedAccountId) ?? 0)
-                      : 0
-                  }
-                  hasLinkedAccount={!!goal.linkedAccountId}
                   onEdit={handleEdit}
                   onDelete={(g) => setDeleteTarget(g)}
                 />

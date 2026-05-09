@@ -109,6 +109,8 @@ export interface Transaction {
   toAccountName?: string;
   categoryId?: string;
   categoryName?: string;
+  savingsGoalId?: string;
+  payee?: string;
   notes?: string;
   originalTransactionId?: string;
   processed: boolean;
@@ -217,6 +219,7 @@ export interface SavingsGoal {
   targetDate: Timestamp;
   linkedAccountId?: string;
   linkedAccountName?: string;
+  currentAmount: number;
   notes?: string;
   status: SavingsGoalStatus;
   createdAt: Timestamp;

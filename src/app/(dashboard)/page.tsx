@@ -96,7 +96,7 @@ export default function DashboardPage() {
       <BudgetOverviewCard transactions={transactions} loading={txLoading} />
 
       {/* Savings Goals Overview */}
-      <SavingsGoalOverviewCard balances={balances} loading={balancesLoading} />
+      <SavingsGoalOverviewCard loading={balancesLoading} />
 
       {/* Row 4: Account Balances + Recent Transactions */}
       <div className="grid gap-4 md:grid-cols-2">
